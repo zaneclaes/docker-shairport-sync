@@ -27,6 +27,7 @@ RUN apk -U add \
         --with-ssl=openssl \
         --with-soxr \
         --with-metadata \
+        --with-mqtt-client \
  && make \
  && make install \
 
