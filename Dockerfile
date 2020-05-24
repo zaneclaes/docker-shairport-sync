@@ -1,67 +1,41 @@
-FROM alpine:edge
-MAINTAINER kevineye@gmail.com
+FROM debian:buster-slim
+MAINTAINER zane@technicallywizardry.com
 
-RUN apk -U add \
+RUN apt-get install -y \
+        build-essential \
         git \
-        build-base \
+        xmltoman \
         autoconf \
         automake \
         libtool \
-        alsa-lib-dev \
-        libdaemon-dev \
-        popt-dev \
-        libressl-dev \
-        soxr-dev \
-        avahi-dev \
+        libpopt-dev \
         libconfig-dev \
-
- && cd /root \
- && git clone https://github.com/mikebrady/shairport-sync.git \
- && cd shairport-sync \
-
- && autoreconf -i -f \
- && ./configure \
-        --with-alsa \
-        --with-pipe \
-        --with-avahi \
-        --with-ssl=openssl \
-        --with-soxr \
-        --with-metadata \
-        --with-mqtt-client \
- && make \
- && make install \
-
- && cd / \
- && apk --purge del \
-        git \
-        build-base \
-        autoconf \
-        automake \
-        libtool \
-        alsa-lib-dev \
-        libdaemon-dev \
-        popt-dev \
-        libressl-dev \
-        soxr-dev \
-        avahi-dev \
-        libconfig-dev \
- && apk add \
+        libasound2-dev \
+        avahi-daemon \
+        libavahi-client-dev \
+        libssl-dev \
+        libsoxr-dev \
         dbus \
         alsa-lib \
-        libdaemon \
-        popt \
-        libressl \
-        soxr \
-        avahi \
-        libconfig \
- && rm -rf \
-        /etc/ssl \
-        /var/cache/apk/* \
-        /lib/apk/db/* \
-        /root/shairport-sync
+        libdaemon-dev \
+        libpopt-dev
+
+RUN git clone https://github.com/mikebrady/shairport-sync.git \
+        && cd shairport-sync \
+        && autoreconf -fi \
+        && ./configure --sysconfdir=/etc  \
+                --with-alsa \
+                --with-pipe \
+                --with-avahi \
+                --with-ssl=openssl \
+                --with-soxr \
+                --with-metadata \
+                --with-mqtt-client \
+        && make \
+        && make install
 
 COPY start.sh /start
 
-ENV AIRPLAY_NAME Docker
+ENV AIRPLAY_NAME Airplay
 
 ENTRYPOINT [ "/start" ]
