@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 MAINTAINER zane@technicallywizardry.com
 
+# Shairport Sync
 RUN apt-get update -y && apt-get install -y \
         build-essential \
         git \
@@ -31,11 +32,30 @@ RUN git clone https://github.com/mikebrady/shairport-sync.git \
                 --with-soxr \
                 --with-metadata \
                 --with-mqtt-client \
+                --with-stdout \
         && make \
         && make install
 
-COPY start.sh /start
+# Snapserver
+ARG snapcast_version=0.19.0
+ARG TARGETARCH=amd64
+
+RUN  apt-get update \
+  && apt-get install -y wget ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+RUN  wget https://github.com/badaix/snapcast/releases/download/v${snapcast_version}/snapserver_${snapcast_version}-1_$(echo $TARGETARCH | sed 's/arm/armhf/g').deb
+RUN  dpkg -i snapserver_${snapcast_version}-1_$(echo $TARGETARCH | sed 's/arm/armhf/g').deb \
+  ;  apt-get update \
+  && apt-get -f install -y \
+  && rm -rf /var/lib/apt/lists/*
+RUN /usr/bin/snapserver -v
+COPY snapserver.conf /etc/snapserver.conf
+COPY index.html /www/index.html
+EXPOSE 1704 1705 1780
+ENTRYPOINT ["/bin/bash","-c","/usr/bin/snapserver"]
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 ENV AIRPLAY_NAME Airplay
 
-ENTRYPOINT [ "/start" ]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
