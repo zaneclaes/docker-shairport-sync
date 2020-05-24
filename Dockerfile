@@ -1,7 +1,7 @@
-FROM debian:buster-slim
+FROM ubuntu:18.04
 MAINTAINER zane@technicallywizardry.com
 
-RUN apt-get install -y \
+RUN apt-get update -y && apt-get install -y \
         build-essential \
         git \
         xmltoman \
@@ -16,7 +16,7 @@ RUN apt-get install -y \
         libssl-dev \
         libsoxr-dev \
         dbus \
-        alsa-lib \
+        libmosquitto-dev \
         libdaemon-dev \
         libpopt-dev
 
